@@ -23,7 +23,8 @@ setup(name=project_name,
       install_requires=['numpy==1.9.0',
                         'scipy==0.14.0',
                         'wrapt==1.9.0',
-                        'menpo==0.4.0a1'
+                        'menpo==0.4.0a1',
+                        'serializablecallable==0.1.2'
                         ],
       tests_require=['nose==1.3.4', 'mock==1.0.1']
       )

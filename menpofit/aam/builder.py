@@ -2,7 +2,7 @@ from __future__ import division
 import numpy as np
 
 from menpo.shape import TriMesh
-from menpo.image import MaskedImage
+from menpo.image import MaskedImage, BooleanImage
 from menpo.transform import Translation
 from menpo.feature import igo
 from menpo.model import PCAModel
@@ -561,14 +561,14 @@ class PatchBasedAAMBuilder(AAMBuilder):
                              self.scaled_shape_models)
 
 
-def build_reference_frame(landmarks, boundary=3, group='source',
+def build_reference_frame(reference_shape, boundary=3, group='source',
                           trilist=None):
     r"""
     Builds a reference frame from a particular set of landmarks.
 
     Parameters
     ----------
-    landmarks : :map:`PointCloud`
+    reference_shape : :map:`PointCloud`
         The landmarks that will be used to build the reference frame.
 
     boundary : `int`, optional
@@ -591,8 +591,9 @@ def build_reference_frame(landmarks, boundary=3, group='source',
     reference_frame : :map:`Image`
         The reference frame.
     """
-    reference_frame = _build_reference_frame(landmarks, boundary=boundary,
-                                             group=group)
+    reference_frame = build_blank_reference_frame(reference_shape,
+                                                  boundary=boundary,
+                                                  group=group)
     if trilist is not None:
         reference_frame.landmarks[group] = TriMesh(
             reference_frame.landmarks['source'].lms.points, trilist=trilist)
@@ -600,6 +601,18 @@ def build_reference_frame(landmarks, boundary=3, group='source',
     # TODO: revise kwarg trilist in method constrain_mask_to_landmarks,
     # perhaps the trilist should be directly obtained from the group landmarks
     reference_frame.constrain_mask_to_landmarks(group=group, trilist=trilist)
+
+    return reference_frame
+
+
+def build_blank_reference_frame(reference_shape, boundary=3, group='source'):
+    # translate landmarks to the origin
+    minimum = reference_shape.bounds(boundary=boundary)[0]
+    reference_shape = Translation(-minimum).apply(reference_shape)
+
+    resolution = reference_shape.range(boundary=boundary)
+    reference_frame = BooleanImage.blank(resolution)
+    reference_frame.landmarks[group] = reference_shape
 
     return reference_frame
 

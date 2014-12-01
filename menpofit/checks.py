@@ -1,20 +1,20 @@
-import wrapt
+from functools import wraps
 from menpofit.base import is_pyramid_on_features
 
 
 # tests currently expect that all features automatically constrain landmarks
 # small wrapper which does this. Note that this decorator only works when
 # called with menpo Image instances.
-@wrapt.decorator
-def constrain_landmarks(wrapped, instance, args, kwargs):
+def constrain_landmarks(wrapped):
 
-    def _execute(image, *args, **kwargs):
+    @wraps(wrapped)
+    def wrapper(image, *args, **kwargs):
         feature = wrapped(image, *args, **kwargs)
         # after calculation, constrain the landmarks to the bounds
         feature.constrain_landmarks_to_bounds()
         return feature
 
-    return _execute(*args, **kwargs)
+    return wrapper
 
 
 def check_features(features, n_levels):
